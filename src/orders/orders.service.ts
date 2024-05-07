@@ -10,7 +10,6 @@ export class OrdersService {
   // logger
   private readonly logger = new Logger('Orders-Service');
   onModuleInit() {
-    // this.$connect();
     this.logger.log(
       `${colors.black.bgWhite(envs.typeOfDatabase)} ${colors.white('DATABASE CONNECTED')} ${colors.green('Successfully using')} ${colors.white(envs.typeOfOrm)}`,
     );
