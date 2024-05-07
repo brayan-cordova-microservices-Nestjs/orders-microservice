@@ -1,15 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { envs } from '../config';
+import { PrismaClient } from '@prisma/client';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const colors = require('colors');
 
 @Injectable()
-export class OrdersService {
+export class OrdersService extends PrismaClient implements OnModuleInit {
   // logger
   private readonly logger = new Logger('Orders-Service');
-  onModuleInit() {
+
+  async onModuleInit() {
+    await this.$connect();
     this.logger.log(
       `${colors.black.bgWhite(envs.typeOfDatabase)} ${colors.white('DATABASE CONNECTED')} ${colors.green('Successfully using')} ${colors.white(envs.typeOfOrm)}`,
     );
