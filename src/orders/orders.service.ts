@@ -1,7 +1,8 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { envs } from '../config';
 import { PrismaClient } from '@prisma/client';
+import { RpcException } from '@nestjs/microservices';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const colors = require('colors');
@@ -19,19 +20,30 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   }
 
   // create a order
-  create(createOrderDto: CreateOrderDto) {
+  createOrder(createOrderDto: CreateOrderDto) {
     return this.order.create({
       data: createOrderDto,
     });
   }
 
   // find All orders
-  findAll() {
+  findAllOrders() {
     return `This action returns all orders`;
   }
 
   // find One order by ID
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOneOrder(id: string) {
+    const order = await this.order.findFirst({
+      where: { id },
+    });
+
+    if (!order) {
+      throw new RpcException({
+        status: HttpStatus.NOT_FOUND,
+        message: `Order with ID ${id}, Not Found...!!!`,
+      });
+    }
+
+    return order;
   }
 }
