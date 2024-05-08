@@ -20,7 +20,9 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
 
   // create a order
   create(createOrderDto: CreateOrderDto) {
-    return createOrderDto;
+    return this.order.create({
+      data: createOrderDto,
+    });
   }
 
   // find All orders
