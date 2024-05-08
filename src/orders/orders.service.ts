@@ -3,6 +3,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { envs } from '../config';
 import { PrismaClient } from '@prisma/client';
 import { RpcException } from '@nestjs/microservices';
+import { OrderPaginationDto } from './dto';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const colors = require('colors');
@@ -27,8 +28,39 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   }
 
   // find All orders
-  findAllOrders() {
-    return `This action returns all orders`;
+  async findAllOrders(orderPaginationDto: OrderPaginationDto) {
+    // Pagination using Prisma
+
+    // Total Pages
+    const totalPages = await this.order.count({
+      where: {
+        status: orderPaginationDto.status,
+      },
+    });
+
+    // Page
+    const page = orderPaginationDto.page;
+
+    // Limit Pages
+    const limit = orderPaginationDto.limit;
+
+    // Last Pages
+    const lastPage = Math.ceil(totalPages / limit);
+
+    return {
+      data: await this.order.findMany({
+        skip: (page - 1) * limit, // how many records per page
+        take: limit,
+        where: {
+          status: orderPaginationDto.status,
+        },
+      }),
+      meta: {
+        totalPages: totalPages,
+        page: page,
+        lastPage: lastPage,
+      },
+    };
   }
 
   // find One order by ID
