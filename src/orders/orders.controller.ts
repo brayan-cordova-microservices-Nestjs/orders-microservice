@@ -1,12 +1,8 @@
-import {
-  Controller,
-  NotImplementedException,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, ParseUUIDPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderPaginationDto } from './dto';
+import { ChangeOrderStatusDto, OrderPaginationDto } from './dto';
 @Controller()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
@@ -29,11 +25,9 @@ export class OrdersController {
     return this.ordersService.findOneOrder(id);
   }
 
-  // change order status
+  // change Order Status (UPDATE-PATCH)
   @MessagePattern({ cmd: 'change_order_status' })
-  changeOrderStatus() {
-    // return this.ordersService.changeOrderStatus();
-
-    throw new NotImplementedException();
+  changeStatus(@Payload() changeOrderStatusDto: ChangeOrderStatusDto) {
+    return this.ordersService.changeOrderStatus(changeOrderStatusDto);
   }
 }
