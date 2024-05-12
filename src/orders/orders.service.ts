@@ -1,9 +1,16 @@
-import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { envs } from '../config';
+import { envs, PRODUCTS_SERVICE } from '../config';
 import { PrismaClient } from '@prisma/client';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ChangeOrderStatusDto, OrderPaginationDto } from './dto';
+import { firstValueFrom } from 'rxjs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const colors = require('colors');
@@ -13,6 +20,14 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   // logger
   private readonly logger = new Logger('Orders-Service');
 
+  // dependency Injection
+  constructor(
+    @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
+  ) {
+    super();
+  }
+
+  // logger display
   async onModuleInit() {
     await this.$connect();
     this.logger.log(
@@ -21,15 +36,14 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   }
 
   // create a order
-  createOrder(createOrderDto: CreateOrderDto) {
-    return {
-      service: 'Orders microservice',
-      createOrderDto: createOrderDto,
-    };
+  async createOrder(createOrderDto: CreateOrderDto) {
+    const ids = [5, 600];
 
-    //   return this.order.create({
-    //     data: createOrderDto,
-    //   });
+    const products = await firstValueFrom(
+      this.productsClient.send({ cmd: 'validate_product' }, ids),
+    );
+
+    return products;
   }
 
   // find All orders

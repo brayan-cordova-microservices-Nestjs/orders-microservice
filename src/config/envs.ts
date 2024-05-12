@@ -4,8 +4,17 @@ import 'dotenv/config';
 import * as joi from 'joi';
 
 interface EnvVars {
+  // orders microservice
   PORT: number;
+
+  // products microservice
+  PRODUCTS_MICROSERVICE_HOST: string;
+  PRODUCTS_MICROSERVICE_PORT: number;
+
+  //  Database Url
   DATABASE_URL: string;
+
+  // Type of database
   TYPE_OF_DATABASE: string;
   TYPE_OF_ORM: string;
 }
@@ -14,7 +23,12 @@ interface EnvVars {
 const envsSchema = joi
   .object({
     PORT: joi.number().required(),
+
+    PRODUCTS_MICROSERVICE_HOST: joi.string().required(),
+    PRODUCTS_MICROSERVICE_PORT: joi.number().required(),
+
     DATABASE_URL: joi.string().required(),
+
     TYPE_OF_DATABASE: joi.string().required(),
     TYPE_OF_ORM: joi.string().required(),
   })
@@ -30,7 +44,12 @@ const envVars: EnvVars = value;
 
 export const envs = {
   port: envVars.PORT,
+
+  productsMicroserviceHost: envVars.PRODUCTS_MICROSERVICE_HOST,
+  productsMicroservicePort: envVars.PRODUCTS_MICROSERVICE_PORT,
+
   databaseUrl: envVars.DATABASE_URL,
+
   typeOfDatabase: envVars.TYPE_OF_DATABASE,
   typeOfOrm: envVars.TYPE_OF_ORM,
 };
