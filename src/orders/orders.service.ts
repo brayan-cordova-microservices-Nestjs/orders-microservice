@@ -47,19 +47,19 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
 
       // 2. value calculations
       const totalAmount = createOrderDto.items.reduce(
-        (accumulatedValue, orderItem) => {
+        (accumulatedValue, orderDetail) => {
           const price = products.find(
-            (product) => product.id == orderItem.productId,
+            (product) => product.id == orderDetail.productId,
           ).price;
 
-          return price * orderItem.quantity;
+          return price * orderDetail.quantity;
         },
         0,
       );
 
       const totalItems = createOrderDto.items.reduce(
-        (accumulatedValue, orderItem) => {
-          return accumulatedValue + orderItem.quantity;
+        (accumulatedValue, orderDetail) => {
+          return accumulatedValue + orderDetail.quantity;
         },
         0,
       );
@@ -71,12 +71,12 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
           totalItems: totalItems,
           OrderDetail: {
             createMany: {
-              data: createOrderDto.items.map((orderItem) => ({
+              data: createOrderDto.items.map((orderDetail) => ({
                 price: products.find(
-                  (product) => product.id == orderItem.productId,
+                  (product) => product.id == orderDetail.productId,
                 ).price,
-                productId: orderItem.productId,
-                quantity: orderItem.quantity,
+                productId: orderDetail.productId,
+                quantity: orderDetail.quantity,
               })),
             },
           },
@@ -94,9 +94,9 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
 
       return {
         ...order,
-        OrderDetail: order.OrderDetail.map((orderItem) => ({
-          ...orderItem,
-          name: products.find((product) => product.id == orderItem.productId)
+        OrderDetail: order.OrderDetail.map((orderDetail) => ({
+          ...orderDetail,
+          name: products.find((product) => product.id == orderDetail.productId)
             .name,
         })),
       };
@@ -149,6 +149,15 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   async findOneOrder(id: string) {
     const order = await this.order.findFirst({
       where: { id },
+      include: {
+        OrderDetail: {
+          select: {
+            productId: true,
+            quantity: true,
+            price: true,
+          },
+        },
+      },
     });
 
     if (!order) {
@@ -158,7 +167,22 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
       });
     }
 
-    return order;
+    const productIds = order.OrderDetail.map(
+      (orderDetail) => orderDetail.productId,
+    );
+
+    const products: any[] = await firstValueFrom(
+      this.productsClient.send({ cmd: 'validate_product' }, productIds),
+    );
+
+    return {
+      ...order,
+      OrderDetail: order.OrderDetail.map((orderDetail) => ({
+        ...orderDetail,
+        name: products.find((product) => product.id == orderDetail.productId)
+          .name,
+      })),
+    };
   }
 
   // change Order Status (UPDATE-PATCH)
