@@ -45,7 +45,7 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
         this.productsClient.send({ cmd: 'validate_product' }, productIds),
       );
 
-      // value calculations
+      // 2. value calculations
       const totalAmount = createOrderDto.items.reduce(
         (accumulatedValue, orderItem) => {
           const price = products.find(
@@ -64,20 +64,42 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
         0,
       );
 
-      // create a transaction in the database
+      // 3. create a transaction in the database
       const order = await this.order.create({
         data: {
           totalAmount: totalAmount,
           totalItems: totalItems,
-          // OrderItem: {
-          //   createMany: {
-          //     data: [],
-          //   },
-          // },
+          OrderDetail: {
+            createMany: {
+              data: createOrderDto.items.map((orderItem) => ({
+                price: products.find(
+                  (product) => product.id == orderItem.productId,
+                ).price,
+                productId: orderItem.productId,
+                quantity: orderItem.quantity,
+              })),
+            },
+          },
+        },
+        include: {
+          OrderDetail: {
+            select: {
+              productId: true,
+              quantity: true,
+              price: true,
+            },
+          },
         },
       });
 
-      return order;
+      return {
+        ...order,
+        OrderDetail: order.OrderDetail.map((orderItem) => ({
+          ...orderItem,
+          name: products.find((product) => product.id == orderItem.productId)
+            .name,
+        })),
+      };
     } catch (error) {
       throw new RpcException({
         statusCode: HttpStatus.BAD_REQUEST,
