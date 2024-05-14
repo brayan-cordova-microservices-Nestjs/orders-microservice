@@ -12,4 +12,5 @@ Run prisma migration with the command `npx prisma migrate dev` and if you want t
 4. Docker database up `docker-compose up -d`
 5. Docker database down `docker-compose down`
 6. Then execute the command `npm run start:dev` on your terminal to run the server in development mode
-7. This Orders Microservice is running on port `3002`
+7. NATS server up `docker run -d --name nats-server -p 4222:4222 -p 8222:8222 nats`
+8. This Orders Microservice is running on port `3002`
