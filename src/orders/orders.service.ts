@@ -6,7 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { envs, PRODUCTS_SERVICE } from '../config';
+import { envs, NATS_SERVICE } from '../config';
 import { PrismaClient } from '@prisma/client';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ChangeOrderStatusDto, OrderPaginationDto } from './dto';
@@ -21,9 +21,7 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger('Orders-Service');
 
   // dependency Injection
-  constructor(
-    @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
-  ) {
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {
     super();
   }
 
@@ -42,7 +40,7 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
       const productIds = createOrderDto.items.map((item) => item.productId);
 
       const products: any[] = await firstValueFrom(
-        this.productsClient.send({ cmd: 'validate_product' }, productIds),
+        this.client.send({ cmd: 'validate_product' }, productIds),
       );
 
       // 2. value calculations
@@ -172,7 +170,7 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
     );
 
     const products: any[] = await firstValueFrom(
-      this.productsClient.send({ cmd: 'validate_product' }, productIds),
+      this.client.send({ cmd: 'validate_product' }, productIds),
     );
 
     return {
