@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   orders-microservice-db:
-    container_name: orders_database
+    container_name: orders_postgresql_database
     image: postgres:16.2
     restart: always
     volumes:
